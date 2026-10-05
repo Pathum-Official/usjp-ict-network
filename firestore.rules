@@ -79,6 +79,11 @@ service cloud.firestore {
       allow write: if hasRole(['super_admin', 'rep', 'treasurer']);
     }
 
+    match /funds/{docId} {
+      allow read: if isAuthenticated() && isUserCohort(resource.data.cohortId);
+      allow write: if hasRole(['super_admin', 'rep', 'treasurer']);
+    }
+
     match /modules/{docId} {
       allow read: if isAuthenticated() && isUserCohort(resource.data.cohortId);
       allow write: if hasRole(['super_admin', 'rep', 'academic_rep']);

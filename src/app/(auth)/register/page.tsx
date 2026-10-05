@@ -98,13 +98,13 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-bold text-2xl tracking-tight text-primary">PMT Family</span>
+            <span className="font-bold text-2xl tracking-tight text-primary">ICT Network</span>
           </Link>
         </div>
         <Card className="border-t-4 border-t-primary shadow-xl">
           <CardHeader>
             <CardTitle className="text-2xl text-center">Create Account</CardTitle>
-            <CardDescription className="text-center">Join the PMT student portal</CardDescription>
+            <CardDescription className="text-center">Join the ICT student portal</CardDescription>
           </CardHeader>
           <form onSubmit={handleRegister}>
             <CardContent className="space-y-4">

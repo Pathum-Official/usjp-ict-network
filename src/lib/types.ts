@@ -3,6 +3,7 @@ export type Role = 'student' | 'rep' | 'academic_rep' | 'treasurer' | 'super_adm
 export interface User {
   uid: string;
   email: string;
+  publicEmail?: string;
   name: string;
   regNo?: string;
   cohortId: string;
@@ -29,7 +30,7 @@ export interface User {
 }
 
 export interface Cohort {
-  id: string; // e.g., 'pmt-2022'
+  id: string; // e.g., 'ict-2022'
   name: string;
   intakeYear: number;
   isActive: boolean;

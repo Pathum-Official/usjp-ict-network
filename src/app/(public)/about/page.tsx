@@ -36,7 +36,7 @@ export default function AboutPage() {
             <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6">
               About the <br />
               <span className="bg-gradient-to-r from-primary via-indigo-500 to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
-                PMT Family
+                ICT Network
               </span>
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">

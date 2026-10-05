@@ -259,7 +259,10 @@ export default function DashboardPage() {
                       {tx.type === 'income' ? <ArrowUpRight className="h-4 w-4 text-emerald-500 shrink-0" /> : <ArrowDownRight className="h-4 w-4 text-destructive shrink-0" />}
                       <div className="flex flex-col overflow-hidden">
                         <span className="truncate">{tx.description}</span>
-                        {tx.date && <span className="text-[10px] text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</span>}
+                        <div className="flex gap-2">
+                          <span className="text-[10px] text-muted-foreground">{tx.fundName || 'General'}</span>
+                          {tx.date && <span className="text-[10px] text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</span>}
+                        </div>
                       </div>
                     </div>
                     <span className={`font-semibold shrink-0 pl-2 ${tx.type === 'income' ? 'text-emerald-500' : 'text-destructive'}`}>
@@ -289,7 +292,7 @@ export default function DashboardPage() {
               <span className="text-3xl">🎉</span> Happy Birthday! <span className="text-3xl">🎂</span>
             </h2>
             <p className="mt-2 text-muted-foreground font-medium">
-              Wishing a fantastic birthday to <span className="text-primary font-bold">{birthdays.join(" and ")}</span> from the PMT Family!
+              Wishing a fantastic birthday to <span className="text-primary font-bold">{birthdays.join(" and ")}</span> from the ICT Network!
             </p>
           </div>
           <div className="absolute right-0 top-0 bottom-0 w-64 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #ec4899 20%, transparent 20%), radial-gradient(circle, #ec4899 20%, transparent 20%)', backgroundSize: '20px 20px', backgroundPosition: '0 0, 10px 10px' }} />
@@ -329,6 +332,7 @@ export default function DashboardPage() {
           url={selectedVideo.url}
           title={selectedVideo.title}
           moduleCode={selectedVideo.moduleCode || selectedVideo.module}
+          chapters={selectedVideo.chapters}
         />
       )}
 

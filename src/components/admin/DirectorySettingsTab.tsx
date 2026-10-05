@@ -87,8 +87,8 @@ export function DirectorySettingsTab() {
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Email Address</Label>
-              <p className="text-sm text-muted-foreground">Show student's email address</p>
+              <Label>Public Email Address</Label>
+              <p className="text-sm text-muted-foreground">Show student's public email address</p>
             </div>
             <Switch checked={settings.showEmail} onCheckedChange={() => handleToggle('showEmail')} />
           </div>

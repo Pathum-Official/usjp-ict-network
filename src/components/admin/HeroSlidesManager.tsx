@@ -100,7 +100,7 @@ export function HeroSlidesManager() {
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2 md:col-span-2">
             <Label>Slide Title</Label>
-            <Input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. The Next Generation of PMT Scholars" />
+            <Input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. The Next Generation of ICT Scholars" />
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label>Subtitle</Label>

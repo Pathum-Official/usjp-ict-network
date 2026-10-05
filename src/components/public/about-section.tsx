@@ -33,12 +33,12 @@ export function AboutSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">About the <span className="text-primary">PMT Family</span></h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">About the <span className="text-primary">ICT Network</span></h2>
             <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
-              The Physics, Mathematics & Technology (PMT) combination at the University of Sri Jayewardenepura is designed to produce analytical thinkers and innovative problem solvers.
+              The Information and Communication Technology (ICT) combination at the University of Sri Jayewardenepura is designed to produce analytical thinkers and innovative problem solvers.
             </p>
             <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-              Our community goes beyond the classroom. The PMT Family is a vibrant network of students, alumni, and faculty dedicated to fostering academic growth, professional development, and lifelong friendships.
+              Our community goes beyond the classroom. The ICT Network is a vibrant network of students, alumni, and faculty dedicated to fostering academic growth, professional development, and lifelong friendships.
             </p>
             <div className="flex gap-4">
               <div className="flex flex-col">

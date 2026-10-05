@@ -22,12 +22,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FinancesPage() {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [funds, setFunds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterFundId, setFilterFundId] = useState<string>("all");
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -50,6 +59,11 @@ export default function FinancesPage() {
         });
 
         setTransactions(list);
+        const fundsSnap = await getDocs(query(collection(db, "funds"), where("cohortId", "==", user.cohortId)));
+        const flist: any[] = [];
+        fundsSnap.forEach(d => flist.push({ id: d.id, ...d.data() }));
+        setFunds(flist);
+
       } catch (error) {
         console.error("Error fetching transactions:", error);
         toast.error("Failed to fetch transactions");
@@ -74,6 +88,11 @@ export default function FinancesPage() {
   const totalExpense = transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + Number(t.amount || 0), 0);
   const balance = totalIncome - totalExpense;
 
+  const fundsToDisplay = [
+    { id: 'general', name: 'General Fund', description: 'Main cohort fund' },
+    ...funds
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -89,45 +108,78 @@ export default function FinancesPage() {
         
         {user && ['rep', 'treasurer', 'super_admin'].includes(user.role) && (
           <Link href="/admin?tab=finances" className={buttonVariants()}>
-            <Plus className="mr-2 h-4 w-4" /> Add Transaction
+            <Plus className="mr-2 h-4 w-4" /> Manage Finances
           </Link>
         )}
       </div>
 
-      <div className="grid sm:grid-cols-3 gap-6 mb-8">
-        <Card className="bg-primary/5 border-primary/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between space-y-0 pb-2">
-              <p className="text-sm font-medium">Total Balance</p>
-              <Wallet className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div className="text-3xl font-bold">Rs. {balance.toLocaleString()}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-emerald-500/5 border-emerald-500/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between space-y-0 pb-2">
-              <p className="text-sm font-medium">Total Income</p>
-              <TrendingUp className="h-4 w-4 text-emerald-500" />
-            </div>
-            <div className="text-3xl font-bold text-emerald-500">Rs. {totalIncome.toLocaleString()}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-destructive/5 border-destructive/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between space-y-0 pb-2">
-              <p className="text-sm font-medium">Total Expenses</p>
-              <TrendingDown className="h-4 w-4 text-destructive" />
-            </div>
-            <div className="text-3xl font-bold text-destructive">Rs. {totalExpense.toLocaleString()}</div>
-          </CardContent>
-        </Card>
+      <div className="mb-2">
+        <h2 className="text-xl font-semibold">Total Portfolio Balance</h2>
+        <div className="text-4xl font-bold mt-1">Rs. {balance.toLocaleString()}</div>
+      </div>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {fundsToDisplay.map(f => {
+          const fundTxs = transactions.filter(t => (t.fundId === f.id) || (!t.fundId && f.id === 'general'));
+          const fInc = fundTxs.filter(t => t.type === 'income').reduce((acc, t) => acc + Number(t.amount || 0), 0);
+          const fExp = fundTxs.filter(t => t.type === 'expense').reduce((acc, t) => acc + Number(t.amount || 0), 0);
+          const fBal = fInc - fExp;
+          
+          return (
+            <Card key={f.id} className="relative overflow-hidden border-primary/20">
+              <div className="absolute right-0 top-0 w-24 h-24 bg-primary/5 rounded-bl-full -z-10" />
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex justify-between items-center">
+                  {f.name}
+                  <Wallet className="h-4 w-4 text-muted-foreground" />
+                </CardTitle>
+                <CardDescription>{f.description || 'Cohort Fund'}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold mb-4">Rs. {fBal.toLocaleString()}</div>
+                <div className="flex justify-between text-sm">
+                  <div className="flex items-center text-emerald-500">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    Rs. {fInc.toLocaleString()}
+                  </div>
+                  <div className="flex items-center text-destructive">
+                    <TrendingDown className="h-3 w-3 mr-1" />
+                    Rs. {fExp.toLocaleString()}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
-          <CardDescription>A detailed list of all approved income and expenses.</CardDescription>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <CardTitle>Recent Transactions</CardTitle>
+            <CardDescription>A detailed list of all approved income and expenses.</CardDescription>
+          </div>
+          <div className="w-full sm:w-48">
+            {(() => {
+              const selectedFundName = filterFundId === 'all' ? 'All Funds' : filterFundId === 'general' ? 'General Fund' : funds.find(f => f.id === filterFundId)?.name || 'Filter by fund';
+              return (
+                <Select value={filterFundId} onValueChange={(val) => setFilterFundId(val || "all")}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by fund">
+                      {selectedFundName}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Funds</SelectItem>
+                    <SelectItem value="general">General Fund</SelectItem>
+                    {funds.map(f => (
+                      <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              );
+            })()}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -150,7 +202,9 @@ export default function FinancesPage() {
                 <p>No transactions found for this cohort.</p>
               </div>
             ) : (
-              transactions.map((tx, i) => (
+              transactions
+                .filter(tx => filterFundId === 'all' || (filterFundId === 'general' ? !tx.fundId : tx.fundId === filterFundId))
+                .map((tx, i) => (
                 <motion.div 
                   key={tx.id}
                   initial={{ opacity: 0, x: -10 }}
@@ -164,7 +218,12 @@ export default function FinancesPage() {
                     </div>
                     <div>
                       <h4 className="font-semibold">{tx.title || tx.description}</h4>
-                      <p className="text-xs text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</p>
+                      <div className="flex items-center gap-2 mt-1 text-xs">
+                        <Badge variant="outline" className="font-normal bg-secondary/10 text-secondary border-secondary/20">
+                          {tx.fundName || 'General Fund'}
+                        </Badge>
+                        <span className="text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -199,6 +258,11 @@ export default function FinancesPage() {
                   </div>
                 </motion.div>
               ))
+            )}
+            {transactions.length > 0 && transactions.filter(tx => filterFundId === 'all' || (filterFundId === 'general' ? !tx.fundId : tx.fundId === filterFundId)).length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                No transactions found for this fund.
+              </div>
             )}
           </div>
         </CardContent>

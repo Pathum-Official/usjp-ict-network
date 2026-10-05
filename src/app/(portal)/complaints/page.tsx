@@ -69,7 +69,7 @@ export default function ComplaintsPage() {
         <CardHeader>
           <CardTitle>Submit Feedback</CardTitle>
           <CardDescription>
-            Your feedback helps us improve the PMT Family experience. You can choose to remain completely anonymous.
+            Your feedback helps us improve the ICT Network experience. You can choose to remain completely anonymous.
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>

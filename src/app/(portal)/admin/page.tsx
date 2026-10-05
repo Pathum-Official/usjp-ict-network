@@ -15,6 +15,7 @@ import { SubjectsManagementTab } from "@/components/admin/SubjectsManagementTab"
 import { AnnouncementsTable } from "@/components/admin/AnnouncementsTable";
 import { ResourcesTable } from "@/components/admin/ResourcesTable";
 import { FinancesTable } from "@/components/admin/FinancesTable";
+import { FundsManager } from "@/components/admin/FundsManager";
 import { PublicContentManagementTab } from "@/components/admin/PublicContentManagementTab";
 import { CombinationsManagementTab } from "@/components/admin/CombinationsManagementTab";
 import { DirectorySettingsTab } from "@/components/admin/DirectorySettingsTab";
@@ -65,6 +66,9 @@ function AdminPageContent() {
   const [resModule, setResModule] = useState("");
   const [resUrl, setResUrl] = useState("");
   const [resDesc, setResDesc] = useState("");
+  const [resChaptersList, setResChaptersList] = useState<{time: string, title: string}[]>([]);
+  const [newChapterTime, setNewChapterTime] = useState("");
+  const [newChapterTitle, setNewChapterTitle] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
 
@@ -72,6 +76,8 @@ function AdminPageContent() {
   const [txAmount, setTxAmount] = useState("");
   const [txDesc, setTxDesc] = useState("");
   const [txDate, setTxDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [txFundId, setTxFundId] = useState("");
+  const [fundsList, setFundsList] = useState<any[]>([]);
 
   const [modules, setModules] = useState<any[]>([]);
 
@@ -124,8 +130,28 @@ function AdminPageContent() {
         console.error("Error fetching modules/resources:", err);
       }
     };
+
+    const fetchFunds = async () => {
+      if (!cohortId) return;
+      try {
+        const q = query(collection(db, "funds"), where("cohortId", "==", cohortId));
+        const snap = await getDocs(q);
+        const flist: any[] = [];
+        snap.forEach(d => flist.push({ id: d.id, ...d.data() }));
+        setFundsList(flist);
+        if (flist.length > 0 && !txFundId) {
+          setTxFundId(flist[0].id);
+        }
+      } catch(e) {
+        console.error(e);
+      }
+    };
+
     fetchModules();
-  }, [user, isSuperAdmin, cohortId]);
+    if (activeTab === 'finances') {
+      fetchFunds();
+    }
+  }, [user, isSuperAdmin, cohortId, activeTab]);
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -161,6 +187,14 @@ function AdminPageContent() {
             }
           } else if (activeTab === "resources") {
             const resSnap = await getDoc(doc(db, "resources", editId));
+            const parseChaptersString = (chStr: string) => {
+              if (!chStr) return [];
+              return chStr.split('|').map(c => {
+                const [time, ...rest] = c.split('~');
+                return { time, title: rest.join('~') };
+              }).filter(c => c.time && c.title);
+            };
+            
             if (resSnap.exists()) {
               const data = resSnap.data();
               setResType(data.type || "pdf_document");
@@ -169,6 +203,7 @@ function AdminPageContent() {
               setResModule(data.moduleCode || data.module || "");
               setResUrl(data.url || "");
               setResDesc(data.description || "");
+              setResChaptersList(parseChaptersString(data.chapters || ""));
             } else {
               const lecSnap = await getDoc(doc(db, "lectures", editId));
               if (lecSnap.exists()) {
@@ -179,6 +214,7 @@ function AdminPageContent() {
                 setResModule(data.moduleCode || data.module || "");
                 setResUrl(data.url || "");
                 setResDesc(data.description || "");
+                setResChaptersList(parseChaptersString(data.chapters || ""));
                 setStartTime(data.startTime || "");
                 setEndTime(data.endTime || "");
               }
@@ -190,6 +226,7 @@ function AdminPageContent() {
               setTxType(data.type || "expense");
               setTxAmount(data.amount?.toString() || "");
               setTxDesc(data.description || "");
+              setTxFundId(data.fundId || "");
               if (data.date) {
                 // date might be full ISO or just YYYY-MM-DD
                 setTxDate(data.date.split('T')[0]);
@@ -204,7 +241,7 @@ function AdminPageContent() {
     } else {
       setAnnTitle(""); setAnnCategory("General"); setAnnContent(""); setAnnBannerUrl(""); setAnnAttachedResources([]);
       setAnnHasPoll(false); setPollQuestion(""); setPollType("single"); setPollOptions(["", ""]);
-      setResType("pdf_document"); setResCategory("Lecture Notes"); setResTitle(""); setResModule(""); setResUrl(""); setStartTime(""); setEndTime("");
+      setResType("pdf_document"); setResCategory("Lecture Notes"); setResTitle(""); setResModule(""); setResUrl(""); setResDesc(""); setResChaptersList([]); setNewChapterTime(""); setNewChapterTitle(""); setStartTime(""); setEndTime("");
       setTxType("expense"); setTxAmount(""); setTxDesc("");
     }
   }, [editId, activeTab]);
@@ -338,6 +375,9 @@ function AdminPageContent() {
           type: resType,
           category: resCategory,
         };
+        if (resType === "youtube_video") {
+          updateData.chapters = resChaptersList.map(c => `${c.time}~${c.title}`).join('|') || "";
+        }
         // For backwards compatibility
         if (resType === "pdf_document") updateData.driveViewUrl = resUrl || "";
         
@@ -361,6 +401,9 @@ function AdminPageContent() {
           author: user?.name || "Admin",
           createdAt: serverTimestamp(),
         };
+        if (resType === "youtube_video") {
+          insertData.chapters = resChaptersList.map(c => `${c.time}~${c.title}`).join('|') || "";
+        }
         if (resType === "pdf_document") insertData.driveViewUrl = resUrl || "";
 
         if (isLectureType && resType === "zoom_meeting") {
@@ -369,7 +412,7 @@ function AdminPageContent() {
         }
         await addDoc(collection(db, collectionName), insertData);
         toast.success(`${isLectureType ? "Session" : "Resource"} published successfully!`);
-        setResTitle(""); setResModule(""); setResUrl(""); setResDesc(""); setStartTime(""); setEndTime("");
+        setResTitle(""); setResModule(""); setResUrl(""); setResDesc(""); setResChaptersList([]); setNewChapterTime(""); setNewChapterTitle(""); setStartTime(""); setEndTime("");
       }
       setRefreshKeys(prev => ({ ...prev, resources: prev.resources + 1 }));
     } catch (error) {
@@ -396,6 +439,8 @@ function AdminPageContent() {
           description: txDesc,
           title: txDesc,
           date: txDate,
+          fundId: txFundId || null,
+          fundName: txFundId ? fundsList.find(f => f.id === txFundId)?.name || 'General' : 'General',
         });
         toast.success("Transaction updated successfully!");
         clearEdit();
@@ -409,6 +454,8 @@ function AdminPageContent() {
           author: user?.name || "Admin",
           date: txDate,
           createdAt: serverTimestamp(),
+          fundId: txFundId || null,
+          fundName: txFundId ? fundsList.find(f => f.id === txFundId)?.name || 'General' : 'General',
         });
         toast.success("Transaction recorded successfully!");
         setTxAmount(""); setTxDesc(""); setTxDate(new Date().toISOString().split('T')[0]);
@@ -791,6 +838,81 @@ function AdminPageContent() {
                     placeholder="Brief details about the resource or session..." 
                   />
                 </div>
+                {resType === "youtube_video" && (
+                  <div className="space-y-4 border border-input rounded-md p-4 bg-muted/10">
+                    <div>
+                      <label className="text-sm font-medium">Video Chapters / Timestamps (Optional)</label>
+                      <p className="text-[11px] text-muted-foreground mt-0 pt-0 mb-3">
+                        Add specific timestamps (e.g., 00:00) and titles for each chapter to allow easy navigation.
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-start gap-2">
+                      <div className="w-1/3">
+                        <Input 
+                          placeholder="e.g. 05:30" 
+                          value={newChapterTime} 
+                          onChange={e => setNewChapterTime(e.target.value)} 
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <Input 
+                          placeholder="Chapter title" 
+                          value={newChapterTitle} 
+                          onChange={e => setNewChapterTitle(e.target.value)} 
+                        />
+                      </div>
+                      <Button 
+                        type="button" 
+                        variant="secondary"
+                        onClick={() => {
+                          if (newChapterTime && newChapterTitle) {
+                            setResChaptersList([...resChaptersList, { time: newChapterTime, title: newChapterTitle }]);
+                            setNewChapterTime("");
+                            setNewChapterTitle("");
+                          }
+                        }}
+                      >
+                        Add
+                      </Button>
+                    </div>
+
+                    {resChaptersList.length > 0 && (
+                      <div className="mt-4 border rounded-md overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead className="bg-muted">
+                            <tr>
+                              <th className="text-left py-2 px-3 font-medium w-24">Time</th>
+                              <th className="text-left py-2 px-3 font-medium">Title</th>
+                              <th className="w-[50px]"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {resChaptersList.map((chapter, idx) => (
+                              <tr key={idx} className="border-t border-border/50 bg-background">
+                                <td className="py-2 px-3 text-primary font-mono">{chapter.time}</td>
+                                <td className="py-2 px-3">{chapter.title}</td>
+                                <td className="py-2 px-2 text-center">
+                                  <Button 
+                                    type="button" 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-6 w-6 text-destructive shrink-0"
+                                    onClick={() => {
+                                      setResChaptersList(resChaptersList.filter((_, i) => i !== idx));
+                                    }}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
                 {resType === "zoom_meeting" && (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -818,7 +940,10 @@ function AdminPageContent() {
         )}
 
         {(isSuperAdmin || user.role === 'rep' || user.role === 'treasurer') && (
-          <TabsContent value="finances">
+          <TabsContent value="finances" className="space-y-8">
+          
+          <FundsManager cohortId={cohortId} />
+
           <Card>
             <CardHeader>
               <CardTitle>{editId ? "Edit Transaction" : "Log Transaction"}</CardTitle>
@@ -839,7 +964,16 @@ function AdminPageContent() {
                     <Input value={txAmount} onChange={e => setTxAmount(e.target.value)} type="number" placeholder="5000" required />
                   </div>
                 </div>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Fund / Account</label>
+                    <select value={txFundId} onChange={e => setTxFundId(e.target.value)} className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                      <option value="" className="dark:bg-zinc-900 dark:text-slate-100 bg-white text-slate-900">General Fund</option>
+                      {fundsList.map(f => (
+                        <option key={f.id} value={f.id} className="dark:bg-zinc-900 dark:text-slate-100 bg-white text-slate-900">{f.name}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Description</label>
                     <Input value={txDesc} onChange={e => setTxDesc(e.target.value)} placeholder="E.g., Sound system rental" required />

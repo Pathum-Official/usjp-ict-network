@@ -19,6 +19,7 @@ export default function ProfilePage() {
   
   const [formData, setFormData] = useState({
     name: "",
+    publicEmail: "",
     phone: "",
     whatsapp: "",
     address: "",
@@ -59,6 +60,7 @@ export default function ProfilePage() {
     if (user) {
       setFormData({
         name: user.name || "",
+        publicEmail: user.publicEmail || "",
         phone: user.phone || "",
         whatsapp: user.whatsapp || "",
         address: user.address || "",
@@ -105,6 +107,7 @@ export default function ProfilePage() {
       setIsSaving(true);
       await updateDoc(doc(db, "users", user.uid), {
         name: formData.name,
+        publicEmail: formData.publicEmail,
         phone: formData.phone,
         whatsapp: formData.whatsapp,
         address: formData.address,
@@ -175,8 +178,12 @@ export default function ProfilePage() {
                     <Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
                   </div>
                   <div className="space-y-2">
-                    <Label>Email Address</Label>
+                    <Label>System Email (University / Registered)</Label>
                     <Input value={user.email} disabled className="bg-muted text-muted-foreground" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Public Email (For Directory)</Label>
+                    <Input type="email" value={formData.publicEmail} onChange={e => setFormData({...formData, publicEmail: e.target.value})} placeholder="e.g. personal@email.com" />
                   </div>
                   <div className="space-y-2">
                     <Label>Date of Birth</Label>

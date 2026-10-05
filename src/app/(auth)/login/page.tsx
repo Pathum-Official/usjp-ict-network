@@ -35,13 +35,13 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-bold text-2xl tracking-tight text-primary">PMT Family</span>
+            <span className="font-bold text-2xl tracking-tight text-primary">ICT Network</span>
           </Link>
         </div>
         <Card className="border-t-4 border-t-primary shadow-xl">
           <CardHeader>
             <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
-            <CardDescription className="text-center">Log in to your PMT cohort portal</CardDescription>
+            <CardDescription className="text-center">Log in to your ICT cohort portal</CardDescription>
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">

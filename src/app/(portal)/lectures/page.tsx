@@ -288,6 +288,7 @@ export default function LecturesPage() {
           url={selectedVideo.url}
           title={selectedVideo.title}
           moduleCode={selectedVideo.moduleCode || selectedVideo.module}
+          chapters={selectedVideo.chapters}
         />
       )}
     </div>

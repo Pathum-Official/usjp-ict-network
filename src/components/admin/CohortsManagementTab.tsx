@@ -95,12 +95,12 @@ export function CohortsManagementTab() {
         <h3 className="font-semibold text-lg">{editId ? "Edit Cohort" : "Add New Cohort"}</h3>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>Cohort ID (e.g., pmt-2026)</Label>
-            <Input required value={idValue} onChange={(e) => setIdValue(e.target.value.toLowerCase().replace(/\s+/g, '-'))} placeholder="pmt-2026" />
+            <Label>Cohort ID (e.g., ict-2026)</Label>
+            <Input required value={idValue} onChange={(e) => setIdValue(e.target.value.toLowerCase().replace(/\s+/g, '-'))} placeholder="ict-2026" />
           </div>
           <div className="space-y-2">
-            <Label>Display Name (e.g., PMT 2026)</Label>
-            <Input required value={name} onChange={(e) => setName(e.target.value)} placeholder="PMT 2026" />
+            <Label>Display Name (e.g., ICT 2026)</Label>
+            <Input required value={name} onChange={(e) => setName(e.target.value)} placeholder="ICT 2026" />
           </div>
           <div className="flex items-center space-x-2 md:col-span-2">
             <Switch checked={isHidden} onCheckedChange={setIsHidden} id="hidden-mode" />

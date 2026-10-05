@@ -83,7 +83,7 @@ export default function DirectoryPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Student Directory</h1>
-        <p className="text-muted-foreground mt-2">Connect with your peers and alumni from PMT Family.</p>
+        <p className="text-muted-foreground mt-2">Connect with your peers and alumni from ICT Network.</p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
@@ -102,11 +102,11 @@ export default function DirectoryPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Batches</SelectItem>
-            <SelectItem value="pmt-2022">PMT 2022</SelectItem>
-            <SelectItem value="pmt-2023">PMT 2023</SelectItem>
-            <SelectItem value="pmt-2024">PMT 2024</SelectItem>
-            <SelectItem value="pmt-2025">PMT 2025</SelectItem>
-            <SelectItem value="pmt-2026">PMT 2026</SelectItem>
+            <SelectItem value="ict-2022">ICT 2022</SelectItem>
+            <SelectItem value="ict-2023">ICT 2023</SelectItem>
+            <SelectItem value="ict-2024">ICT 2024</SelectItem>
+            <SelectItem value="ict-2025">ICT 2025</SelectItem>
+            <SelectItem value="ict-2026">ICT 2026</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -198,10 +198,10 @@ export default function DirectoryPage() {
                       <span className="line-clamp-1">{u.dob}</span>
                     </div>
                   )}
-                  {settings.showEmail && u.email && (
+                  {settings.showEmail && (u.publicEmail || u.email) && (
                     <div className="flex items-start gap-2">
                       <Mail className="h-4 w-4 shrink-0 mt-0.5 text-foreground/50" />
-                      <span className="line-clamp-1">{u.email}</span>
+                      <span className="line-clamp-1">{u.publicEmail || u.email}</span>
                     </div>
                   )}
                   {(u.jobCompany || u.jobPosition) && (

@@ -19,8 +19,8 @@ const notoSansSinhala = Noto_Sans_Sinhala({
 });
 
 export const metadata: Metadata = {
-  title: "PMT Family",
-  description: "University of Sri Jayewardenepura - Physics, Mathematics & Technology combination",
+  title: "ICT Network",
+  description: "University of Sri Jayewardenepura - Information and Communication Technology",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

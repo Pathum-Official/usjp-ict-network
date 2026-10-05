@@ -77,7 +77,7 @@ export default function GalleryPage() {
             Photo <span className="bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">Gallery</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Relive the best moments of the PMT Family. A visual journey through our academic and extracurricular milestones.
+            Relive the best moments of the ICT Network. A visual journey through our academic and extracurricular milestones.
           </p>
         </motion.div>
 

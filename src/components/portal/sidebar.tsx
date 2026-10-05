@@ -25,7 +25,7 @@ export function Sidebar({ className, onItemClick }: { className?: string, onItem
   return (
     <div className={cn("flex flex-col h-full bg-card border-r", className)}>
       <div className="p-6 border-b flex items-center gap-2">
-        <span className="font-extrabold text-2xl tracking-tight">PMT Portal</span>
+        <span className="font-extrabold text-2xl tracking-tight">ICT Portal</span>
       </div>
       <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
         {navItems.map((item) => {

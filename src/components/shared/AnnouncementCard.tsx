@@ -61,7 +61,7 @@ export function AnnouncementCard({
   const [loadingVoters, setLoadingVoters] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedResource, setSelectedResource] = useState<{ url: string, title: string, type: string } | null>(null);
-  const [selectedVideo, setSelectedVideo] = useState<{ url: string, title: string, moduleCode?: string } | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<{ url: string, title: string, moduleCode?: string, chapters?: string } | null>(null);
   const [selectedZoom, setSelectedZoom] = useState<any | null>(null);
 
   const handleVote = async (optionIndex: number) => {
@@ -349,7 +349,7 @@ export function AnnouncementCard({
                       if (isViewerSupported) {
                         setSelectedResource({ url: res.url, title: res.title, type: res.type || 'link' });
                       } else if (isVideo) {
-                        setSelectedVideo({ url: res.url, title: res.title, moduleCode: res.moduleCode || res.module });
+                        setSelectedVideo({ url: res.url, title: res.title, moduleCode: res.moduleCode || res.module, chapters: res.chapters });
                       } else if (isZoom) {
                         setSelectedZoom({ 
                           url: res.url, 
@@ -394,6 +394,7 @@ export function AnnouncementCard({
           url={selectedVideo.url} 
           title={selectedVideo.title}
           moduleCode={selectedVideo.moduleCode}
+          chapters={selectedVideo.chapters}
         />
       )}
 

@@ -25,7 +25,7 @@ export function HeroSection() {
           // Fallback slide
           setSlides([{
             id: 'default',
-            title: 'The Next Generation of <br class="hidden md:block" /><span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">PMT Scholars</span>',
+            title: 'The Next Generation of <br class="hidden md:block" /><span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">ICT Scholars</span>',
             subtitle: 'Physics, Mathematics, and Technology. United in excellence. Access your cohort portal, collaborate with peers, and unlock your academic potential.',
             imageUrl: '' // default grid
           }]);
@@ -114,7 +114,7 @@ export function HeroSection() {
               <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link href="/about" className={buttonVariants({ size: "lg", variant: "outline", className: "w-full sm:w-auto h-12 px-8 text-base" })}>
-              Discover PMT
+              Discover ICT
             </Link>
           </motion.div>
           {slides.length > 1 && (

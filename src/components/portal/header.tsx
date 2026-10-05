@@ -77,7 +77,7 @@ export function Header() {
             <Sidebar onItemClick={() => setIsSidebarOpen(false)} />
           </SheetContent>
         </Sheet>
-        <span className="font-bold text-lg text-primary">PMT Portal</span>
+        <span className="font-bold text-lg text-primary">ICT Portal</span>
       </div>
 
       <div className="hidden lg:flex items-center">

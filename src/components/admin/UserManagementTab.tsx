@@ -379,10 +379,10 @@ export function UserManagementTab() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Batches</SelectItem>
-                  <SelectItem value="pmt-2022">PMT 2022</SelectItem>
-                  <SelectItem value="pmt-2023">PMT 2023</SelectItem>
-                  <SelectItem value="pmt-2024">PMT 2024</SelectItem>
-                  <SelectItem value="pmt-2025">PMT 2025</SelectItem>
+                  <SelectItem value="ict-2022">ICT 2022</SelectItem>
+                  <SelectItem value="ict-2023">ICT 2023</SelectItem>
+                  <SelectItem value="ict-2024">ICT 2024</SelectItem>
+                  <SelectItem value="ict-2025">ICT 2025</SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -493,10 +493,10 @@ export function UserManagementTab() {
                 <Select value={editUser.cohortId} onValueChange={(val) => val && setEditUser({...editUser, cohortId: val})}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pmt-2022">PMT 2022</SelectItem>
-                    <SelectItem value="pmt-2023">PMT 2023</SelectItem>
-                    <SelectItem value="pmt-2024">PMT 2024</SelectItem>
-                    <SelectItem value="pmt-2025">PMT 2025</SelectItem>
+                    <SelectItem value="ict-2022">ICT 2022</SelectItem>
+                    <SelectItem value="ict-2023">ICT 2023</SelectItem>
+                    <SelectItem value="ict-2024">ICT 2024</SelectItem>
+                    <SelectItem value="ict-2025">ICT 2025</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

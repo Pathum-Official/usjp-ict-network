@@ -57,7 +57,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between mx-auto px-4 md:px-8">
           <Link href="/" className="flex items-center space-x-2">
-            <span className="font-extrabold text-2xl bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">PMT Family</span>
+            <span className="font-extrabold text-2xl bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">ICT Network</span>
           </Link>
           
           {/* Desktop Nav */}
@@ -103,11 +103,11 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
             <div>
-              <span className="font-bold text-xl text-primary">PMT Family</span>
+              <span className="font-bold text-xl text-primary">ICT Network</span>
               <p className="text-sm text-muted-foreground mt-2 max-w-xs">University of Sri Jayewardenepura. Fostering excellence in Physics, Mathematics & Technology.</p>
             </div>
             <div className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} USJP PMT Family. All rights reserved.
+              © {new Date().getFullYear()} USJP ICT Network. All rights reserved.
             </div>
           </div>
         </div>

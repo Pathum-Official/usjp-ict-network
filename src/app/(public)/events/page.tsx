@@ -78,7 +78,7 @@ export default function EventsPage() {
             Upcoming <span className="bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">Events</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover what's happening in the PMT Family. From academic workshops to batch trips, stay connected and never miss out.
+            Discover what's happening in the ICT Network. From academic workshops to batch trips, stay connected and never miss out.
           </p>
         </motion.div>
 
