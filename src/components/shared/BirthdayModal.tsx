@@ -221,7 +221,7 @@ export function BirthdayModal({ isOpen, onClose, data }: { isOpen: boolean, onCl
               <Button 
                 size="icon" 
                 variant="ghost" 
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 hover:bg-background"
+                className="absolute top-2 right-2  transition-opacity bg-background/80 hover:bg-background"
                 onClick={handleCopy}
                 title="Copy Text"
               >

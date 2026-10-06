@@ -83,6 +83,7 @@ export function AchievementsManager() {
     setTitle(ach.title || "");
     setValue(ach.value || "");
     setIconName(ach.iconName || "Trophy");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (

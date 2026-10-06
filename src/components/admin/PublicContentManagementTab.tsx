@@ -118,6 +118,7 @@ function EventsManager() {
         setSelectedFile(null);
       }
     } else {
+    window.scrollTo({ top: 0, behavior: "smooth" });
       setTitle(""); setDate(""); setLocation(""); setImageUrl(""); setDescription(""); setLink(""); setSelectedFile(null);
     }
   }, [editId, events]);
@@ -310,6 +311,7 @@ function GalleryManager() {
         setExistingImageUrls(target.imageUrls || (target.imageUrl ? [target.imageUrl] : []));
       }
     } else {
+    window.scrollTo({ top: 0, behavior: "smooth" });
       setTitle(""); setCategory(""); setImageUrl(""); setCaption(""); setVisibility("both"); setSelectedFiles([]); setExistingImageUrls([]);
     }
   }, [editId, items]);
@@ -423,7 +425,7 @@ function GalleryManager() {
                 {existingImageUrls.map((url, idx) => (
                   <div key={idx} className="relative group w-20 h-20 rounded-md overflow-hidden border">
                      <img src={url} className="w-full h-full object-cover" />
-                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center transition-opacity">
                         <Button type="button" variant="ghost" size="icon" className="text-white hover:text-red-500 hover:bg-transparent" onClick={() => {
                            setExistingImageUrls(prev => prev.filter((_, i) => i !== idx));
                         }}>
@@ -485,7 +487,7 @@ function GalleryManager() {
             return (
               <div key={item.id} className="relative group rounded-lg overflow-hidden border">
                 <img src={displayUrl} alt={item.title} className="w-full h-48 object-cover" />
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4">
+                <div className="absolute inset-0 bg-black/40 transition-opacity flex flex-col justify-between p-4">
                   <div className="flex justify-between items-start">
                     <div className="space-x-2 flex">
                       <Badge variant="secondary" className="bg-white/20 text-white border-none">{item.category}</Badge>

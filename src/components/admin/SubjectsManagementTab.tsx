@@ -121,6 +121,7 @@ export function SubjectsManagementTab({ cohortId }: { cohortId: string }) {
     setEditingId(subject.id);
     setEditCode(subject.code);
     setEditName(subject.name);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   if (loading) return <div className="p-8 text-center text-muted-foreground">Loading subjects...</div>;

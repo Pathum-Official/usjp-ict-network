@@ -87,6 +87,7 @@ export function CohortsManagementTab() {
     setIdValue(cohort.id || "");
     setName(cohort.name || "");
     setIsHidden(cohort.isHidden || false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (

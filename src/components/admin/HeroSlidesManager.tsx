@@ -67,6 +67,7 @@ export function HeroSlidesManager() {
         toast.success("Slide created successfully");
       }
       setTitle(""); setSubtitle(""); setImageUrl(""); setSelectedFile(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
       fetchSlides();
     } catch (error) {
       toast.error(editId ? "Failed to update slide" : "Failed to create slide");

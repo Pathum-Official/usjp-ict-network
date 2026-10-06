@@ -241,12 +241,12 @@ export default function ResourcesPage() {
                               <div className="flex gap-2">
                                 {(user?.role === 'super_admin' || (user?.role === 'rep' && user?.cohortId === r.cohortId)) && (
                                   <>
-                                    <Link href={`/admin?tab=resources&editId=${r.id}`} className="p-2 text-muted-foreground hover:text-primary bg-background shadow-sm border rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Link href={`/admin?tab=resources&editId=${r.id}`} className="p-2 text-muted-foreground hover:text-primary bg-background shadow-sm border rounded-md opacity-100 transition-opacity">
                                       <Edit className="h-4 w-4" />
                                     </Link>
                                     <AlertDialog>
                                       <AlertDialogTrigger>
-                                        <div className="p-2 text-muted-foreground hover:text-destructive bg-background shadow-sm border rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer inline-flex items-center justify-center">
+                                        <div className="p-2 text-muted-foreground hover:text-destructive bg-background shadow-sm border rounded-md opacity-100 transition-opacity cursor-pointer inline-flex items-center justify-center">
                                           <Trash2 className="h-4 w-4" />
                                         </div>
                                       </AlertDialogTrigger>

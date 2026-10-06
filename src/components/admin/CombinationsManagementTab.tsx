@@ -72,6 +72,7 @@ export function CombinationsManagementTab() {
     setEditId(combo.id);
     setNewName(combo.name);
     setIsDialogOpen(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
   
   const handleDialogClose = (open: boolean) => {

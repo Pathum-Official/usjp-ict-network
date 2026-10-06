@@ -98,6 +98,7 @@ export function FundsManager({ cohortId }: { cohortId: string }) {
     setEditId(f.id);
     setName(f.name);
     setDescription(f.description || "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const cancelEdit = () => {
