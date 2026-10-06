@@ -41,7 +41,7 @@ export function EventsSection() {
   if (events.length === 0) return null;
 
   return (
-    <section className="py-24 bg-muted/30">
+    <section id="events" className="py-24 bg-muted/30">
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex justify-between items-end mb-12">
           <div>

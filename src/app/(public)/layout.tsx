@@ -29,25 +29,46 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
         Home
       </Link>
       <Link 
-        href="/about" 
+        href="/#about" 
         onClick={onClick}
-        className={`text-lg md:text-sm font-medium transition-colors hover:text-primary ${isActive("/about") ? "text-primary font-semibold" : "text-foreground/80"}`}
+        className="text-lg md:text-sm font-medium transition-colors hover:text-primary text-foreground/80"
       >
         About
       </Link>
       <Link 
-        href="/events" 
+        href="/#events" 
         onClick={onClick}
-        className={`text-lg md:text-sm font-medium transition-colors hover:text-primary ${isActive("/events") ? "text-primary font-semibold" : "text-foreground/80"}`}
+        className="text-lg md:text-sm font-medium transition-colors hover:text-primary text-foreground/80"
       >
         Events
       </Link>
       <Link 
-        href="/gallery" 
+        href="/#gallery" 
         onClick={onClick}
-        className={`text-lg md:text-sm font-medium transition-colors hover:text-primary ${isActive("/gallery") ? "text-primary font-semibold" : "text-foreground/80"}`}
+        className="text-lg md:text-sm font-medium transition-colors hover:text-primary text-foreground/80"
       >
         Gallery
+      </Link>
+      <Link 
+        href="/#achievements" 
+        onClick={onClick}
+        className="text-lg md:text-sm font-medium transition-colors hover:text-primary text-foreground/80"
+      >
+        Achievements
+      </Link>
+      <Link 
+        href="/#committee" 
+        onClick={onClick}
+        className="text-lg md:text-sm font-medium transition-colors hover:text-primary text-foreground/80"
+      >
+        Committee
+      </Link>
+      <Link 
+        href="/#birthdays" 
+        onClick={onClick}
+        className="text-lg md:text-sm font-medium transition-colors hover:text-primary text-foreground/80"
+      >
+        Birthdays
       </Link>
     </>
   );

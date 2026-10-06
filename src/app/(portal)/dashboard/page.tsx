@@ -15,6 +15,7 @@ import { LectureVideoModal } from "@/components/shared/LectureVideoModal";
 import { ResourceViewerModal } from "@/components/shared/ResourceViewerModal";
 import { ZoomLobbyCard } from "@/components/shared/ZoomLobbyCard";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { BirthdayModal } from "@/components/shared/BirthdayModal";
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
@@ -27,21 +28,26 @@ export default function DashboardPage() {
   const [selectedVideo, setSelectedVideo] = useState<any | null>(null);
   const [selectedZoom, setSelectedZoom] = useState<any | null>(null);
   const [selectedResource, setSelectedResource] = useState<{ url: string; title: string; type: string } | null>(null);
-  const [birthdays, setBirthdays] = useState<string[]>([]);
+  const [birthdays, setBirthdays] = useState<{user: any, cohort: any}[]>([]);
+  const [selectedBirthday, setSelectedBirthday] = useState<{user: any, cohort: any} | null>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       if (!user?.cohortId) return;
       try {
         setLoading(true);
+        const { doc, getDoc } = await import("firebase/firestore");
 
-        const [annRes, resRes, lecRes, txRes, usersRes] = await Promise.all([
+        const [annRes, resRes, lecRes, txRes, usersRes, cohortDoc] = await Promise.all([
           getDocs(query(collection(db, "announcements"), where("cohortId", "==", user.cohortId))),
           getDocs(query(collection(db, "resources"), where("cohortId", "==", user.cohortId))),
           getDocs(query(collection(db, "lectures"), where("cohortId", "==", user.cohortId))),
           getDocs(query(collection(db, "transactions"), where("cohortId", "==", user.cohortId))),
-          getDocs(query(collection(db, "users"), where("cohortId", "==", user.cohortId), where("status", "==", "approved")))
+          getDocs(query(collection(db, "users"), where("cohortId", "==", user.cohortId), where("status", "==", "approved"))),
+          getDoc(doc(db, "cohorts", user.cohortId))
         ]);
+
+        const cohortData = cohortDoc.exists() ? cohortDoc.data() : { name: user.cohortId.toUpperCase() };
 
         // Fetch announcements
         const annList: any[] = [];
@@ -95,14 +101,14 @@ export default function DashboardPage() {
         const today = new Date();
         const todayMonthDay = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
         
-        const bdayNames: string[] = [];
+        const bdays: {user: any, cohort: any}[] = [];
         usersRes.forEach(d => {
           const u = d.data();
           if (u.dob && u.dob.endsWith(todayMonthDay)) {
-            bdayNames.push(u.name);
+            bdays.push({ user: u, cohort: cohortData });
           }
         });
-        setBirthdays(bdayNames);
+        setBirthdays(bdays);
 
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -286,16 +292,40 @@ export default function DashboardPage() {
       </div>
 
       {birthdays.length > 0 && (
-        <div className="bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-indigo-500/20 border border-pink-500/30 rounded-xl p-6 flex items-center justify-between shadow-sm relative overflow-hidden">
-          <div className="relative z-10">
-            <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <span className="text-3xl">🎉</span> Happy Birthday! <span className="text-3xl">🎂</span>
-            </h2>
-            <p className="mt-2 text-muted-foreground font-medium">
-              Wishing a fantastic birthday to <span className="text-primary font-bold">{birthdays.join(" and ")}</span> from the ICT Network!
-            </p>
+        <div className="bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-indigo-500/10 border border-primary/20 rounded-xl p-6 shadow-sm relative overflow-hidden">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-2 mb-2">
+                <span className="text-3xl">🎉</span> Happy Birthday! <span className="text-3xl">🎂</span>
+              </h2>
+              <p className="text-muted-foreground font-medium">
+                Wishing a fantastic birthday to our friends from the ICT Network! Click to send a wish.
+              </p>
+            </div>
+            
+            <div className="flex flex-wrap gap-4">
+              {birthdays.map((bday, i) => (
+                <div 
+                  key={i} 
+                  onClick={() => setSelectedBirthday(bday)}
+                  className="flex items-center gap-3 bg-background/50 hover:bg-background border border-primary/20 p-2 pr-4 rounded-full cursor-pointer transition-all hover:scale-105 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)] group z-20 relative"
+                >
+                  <div className="w-10 h-10 rounded-full bg-primary/20 overflow-hidden border border-primary/30 flex items-center justify-center">
+                    {bday.user.photoURL ? (
+                      <img src={bday.user.photoURL} alt={bday.user.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-primary font-bold text-sm">{bday.user.name.charAt(0)}</span>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-bold text-sm leading-tight group-hover:text-primary transition-colors">{bday.user.name}</span>
+                    <span className="text-[10px] text-muted-foreground uppercase">{bday.cohort?.name || "ICT Network"}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="absolute right-0 top-0 bottom-0 w-64 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #ec4899 20%, transparent 20%), radial-gradient(circle, #ec4899 20%, transparent 20%)', backgroundSize: '20px 20px', backgroundPosition: '0 0, 10px 10px' }} />
+          <div className="absolute right-0 top-0 bottom-0 w-64 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #3b82f6 20%, transparent 20%), radial-gradient(circle, #3b82f6 20%, transparent 20%)', backgroundSize: '20px 20px', backgroundPosition: '0 0, 10px 10px' }} />
         </div>
       )}
 
@@ -360,6 +390,14 @@ export default function DashboardPage() {
             />
           </DialogContent>
         </Dialog>
+      )}
+
+      {selectedBirthday && (
+        <BirthdayModal 
+          isOpen={!!selectedBirthday} 
+          onClose={() => setSelectedBirthday(null)} 
+          data={selectedBirthday} 
+        />
       )}
     </div>
   );

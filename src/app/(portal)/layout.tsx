@@ -3,6 +3,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { Sidebar } from "@/components/portal/sidebar";
 import { Header } from "@/components/portal/header";
 import { PortalGuard } from "@/components/portal/PortalGuard";
+import { BirthdaySurprise } from "@/components/portal/BirthdaySurprise";
 
 export default function PortalLayout({ children }: { children: ReactNode }) {
   return (
@@ -16,6 +17,7 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
           <div className="flex-1 p-6 lg:p-8 overflow-auto">
             <PortalGuard>
               {children}
+              <BirthdaySurprise />
             </PortalGuard>
           </div>
         </main>

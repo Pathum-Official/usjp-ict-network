@@ -140,9 +140,19 @@ export default function DirectoryPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredUsers.map(u => (
-            <Card key={u.uid} className="overflow-hidden group hover:shadow-md transition-all">
-              <div className="h-20 bg-gradient-to-r from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-colors" />
+          {filteredUsers.map(u => {
+            const today = new Date();
+            const todayMonthDay = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const isBirthday = u.dob && u.dob.endsWith(todayMonthDay);
+            
+            return (
+            <Card key={u.uid} className={`overflow-hidden group hover:shadow-md transition-all ${isBirthday ? 'border-pink-500/50 shadow-[0_0_15px_rgba(236,72,153,0.15)] relative' : ''}`}>
+              {isBirthday && (
+                <div className="absolute top-0 right-0 bg-gradient-to-l from-pink-500 to-purple-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg z-10 shadow-sm flex items-center gap-1">
+                  <Cake className="w-3 h-3" /> Birthday Today
+                </div>
+              )}
+              <div className={`h-20 ${isBirthday ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20' : 'bg-gradient-to-r from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10'} transition-colors`} />
               <CardContent className="pt-0 relative">
                 <Avatar className="h-16 w-16 absolute -top-8 border-4 border-background shadow-sm">
                   <AvatarImage src={u.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`} className="object-cover" />
@@ -252,7 +262,8 @@ export default function DirectoryPage() {
                 )}
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

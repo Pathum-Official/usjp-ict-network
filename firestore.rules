@@ -37,7 +37,7 @@ service cloud.firestore {
     // ==========================================
     match /users/{userId} {
       // Super Admin can read all users; Users can read all for directory; Public can read featured members.
-      allow read: if isAuthenticated() || resource.data.isFeaturedOnHome == true;
+      allow read: if isAuthenticated() || resource.data.isFeaturedOnHome == true || resource.data.status == 'approved';
       
       // Allow users to create their own profile during registration
       allow create: if isAuthenticated() && request.auth.uid == userId;
@@ -53,39 +53,46 @@ service cloud.firestore {
       allow delete: if isSuperAdmin() || (hasRole(['rep']) && resource.data.cohortId == getUserData().cohortId && resource.data.role != 'super_admin');
     }
 
+    match /profile_updates/{docId} {
+      allow read: if hasRole(['super_admin', 'rep']) || (isAuthenticated() && docId == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if hasRole(['super_admin', 'rep']) || (isAuthenticated() && docId == request.auth.uid && request.resource.data.userId == request.auth.uid);
+      allow delete: if hasRole(['super_admin', 'rep']);
+    }
+
     // ==========================================
     // 2. CONTENT COLLECTIONS (Announcements, Resources, Lectures, Finances)
     // ==========================================
     
     match /announcements/{docId} {
-      allow read: if isAuthenticated() && isUserCohort(resource.data.cohortId);
+      allow read: if isAuthenticated();
       allow create, delete: if hasRole(['super_admin', 'rep', 'media_rep']);
       allow update: if hasRole(['super_admin', 'rep', 'media_rep']) || 
                     (isAuthenticated() && isUserCohort(resource.data.cohortId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['poll']));
     }
     
     match /resources/{docId} {
-      allow read: if isAuthenticated() && isUserCohort(resource.data.cohortId);
+      allow read: if isAuthenticated();
       allow write: if hasRole(['super_admin', 'rep', 'academic_rep']);
     }
     
     match /lectures/{docId} {
-      allow read: if isAuthenticated() && isUserCohort(resource.data.cohortId);
+      allow read: if isAuthenticated();
       allow write: if hasRole(['super_admin', 'rep', 'academic_rep']);
     }
     
     match /transactions/{docId} { // Finances are stored in the 'transactions' collection
-      allow read: if isAuthenticated() && isUserCohort(resource.data.cohortId);
+      allow read: if isAuthenticated();
       allow write: if hasRole(['super_admin', 'rep', 'treasurer']);
     }
 
     match /funds/{docId} {
-      allow read: if isAuthenticated() && isUserCohort(resource.data.cohortId);
+      allow read: if isAuthenticated();
       allow write: if hasRole(['super_admin', 'rep', 'treasurer']);
     }
 
     match /modules/{docId} {
-      allow read: if isAuthenticated() && isUserCohort(resource.data.cohortId);
+      allow read: if isAuthenticated();
       allow write: if hasRole(['super_admin', 'rep', 'academic_rep']);
     }
 

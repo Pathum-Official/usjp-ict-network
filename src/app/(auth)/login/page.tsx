@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut, sendEmailVerification } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { toast } from "sonner";
 
@@ -20,11 +20,29 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      if (!userCredential.user.emailVerified) {
+        // Send another verification email just in case
+        await sendEmailVerification(userCredential.user);
+        await signOut(auth);
+        toast.error("Please verify your email address. A new verification link has been sent to your inbox.");
+        setIsLoading(false);
+        return;
+      }
+
       toast.success("Login successful!");
       router.push("/dashboard");
     } catch (error: any) {
-      toast.error(error.message || "Failed to log in.");
+      let errorMessage = "Failed to log in. Please try again.";
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        errorMessage = "Incorrect email address or password. Please check your credentials and try again.";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Too many failed login attempts. Please try again later or reset your password.";
+      } else if (error.message) {
+        errorMessage = error.message.replace("Firebase: ", "").replace(/\(auth\/.*\)\.?/, "").trim();
+      }
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -52,7 +70,7 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium">Password</label>
-                  <Link href="#" className="text-xs text-primary hover:underline">Forgot password?</Link>
+                  <Link href="/forgot-password" className="text-xs text-primary hover:underline">Forgot password?</Link>
                 </div>
                 <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>

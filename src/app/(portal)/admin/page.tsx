@@ -20,10 +20,11 @@ import { PublicContentManagementTab } from "@/components/admin/PublicContentMana
 import { CombinationsManagementTab } from "@/components/admin/CombinationsManagementTab";
 import { DirectorySettingsTab } from "@/components/admin/DirectorySettingsTab";
 import { CohortsManagementTab } from "@/components/admin/CohortsManagementTab";
+import { ProfileRequestsTab } from "@/components/admin/ProfileRequestsTab";
 import { collection, addDoc, updateDoc, doc, getDoc, getDocs, query, serverTimestamp, where, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { uploadToImgBB } from "@/lib/imgbb";
-import { Loader2, Image as ImageIcon, Link as LinkIcon } from "lucide-react";
+import { Loader2, Image as ImageIcon, Link as LinkIcon, UserCog } from "lucide-react";
 
 function AdminPageContent() {
   const { user } = useAuth();
@@ -485,7 +486,12 @@ function AdminPageContent() {
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <div className="overflow-x-auto pb-2">
           <TabsList className="mb-2">
-            {(isSuperAdmin || user.role === 'rep') && <TabsTrigger value="users" className="gap-2"><Users className="h-4 w-4" /> Users</TabsTrigger>}
+            {(isSuperAdmin || user.role === 'rep') && (
+              <>
+                <TabsTrigger value="users" className="gap-2"><Users className="h-4 w-4" /> Users</TabsTrigger>
+                <TabsTrigger value="profile_updates" className="gap-2"><UserCog className="h-4 w-4" /> Profile Updates</TabsTrigger>
+              </>
+            )}
             
             {(isSuperAdmin || user.role === 'rep' || user.role === 'media_rep') && (
               <TabsTrigger value="announcements" className="gap-2"><Megaphone className="h-4 w-4" /> Announcements</TabsTrigger>
@@ -525,9 +531,14 @@ function AdminPageContent() {
         </div>
 
         {(isSuperAdmin || user.role === 'rep') && (
-          <TabsContent value="users">
-            <UserManagementTab />
-          </TabsContent>
+          <>
+            <TabsContent value="users">
+              <UserManagementTab />
+            </TabsContent>
+            <TabsContent value="profile_updates">
+              <ProfileRequestsTab />
+            </TabsContent>
+          </>
         )}
 
         {(isSuperAdmin || user.role === 'rep') && (

@@ -29,7 +29,7 @@ export function CommitteeSection() {
   if (committee.length === 0) return null;
 
   return (
-    <section className="py-24">
+    <section id="committee" className="py-24">
       <div className="container mx-auto px-4 md:px-8 text-center">
         <h2 className="text-3xl md:text-4xl font-bold mb-4">Executive <span className="text-primary">Committee</span></h2>
         <p className="text-muted-foreground text-lg mb-16 max-w-2xl mx-auto">The dedicated student leaders steering the ICT Network towards greatness this year.</p>

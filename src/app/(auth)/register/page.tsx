@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
 import { doc, setDoc, collection, getDocs, query, orderBy } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { toast } from "sonner";
@@ -71,6 +71,9 @@ export default function RegisterPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
       const user = userCredential.user;
       
+      // Send email verification
+      await sendEmailVerification(user);
+      
       // Save additional details to Firestore
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
@@ -84,8 +87,10 @@ export default function RegisterPage() {
         createdAt: new Date().toISOString(),
       });
 
-      toast.success("Registration successful!");
-      router.push("/dashboard");
+      await signOut(auth);
+
+      toast.success("Registration successful! Please check your email to verify your account.");
+      router.push("/login");
     } catch (error: any) {
       toast.error(error.message || "Failed to register.");
     } finally {
