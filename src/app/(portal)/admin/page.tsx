@@ -237,6 +237,7 @@ function AdminPageContent() {
         }
       };
       fetchEditDoc();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       setAnnTitle(""); setAnnCategory("General"); setAnnContent(""); setAnnBannerUrl(""); setAnnAttachedResources([]);
       setAnnHasPoll(false); setPollQuestion(""); setPollType("single"); setPollOptions(["", ""]);

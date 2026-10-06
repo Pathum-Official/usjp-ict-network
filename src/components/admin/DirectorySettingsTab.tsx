@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { doc, getDoc, updateDoc, collection, getDocs, query, orderBy } from "firebase/firestore";
+import { doc, getDoc, updateDoc, setDoc, collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -74,7 +74,8 @@ export function DirectorySettingsTab() {
     if (!cohortId) return;
     setSaving(true);
     try {
-      await updateDoc(doc(db, "cohorts", cohortId), {
+      await setDoc(doc(db, "cohorts", cohortId), {
+
         directorySettings: {
           showEmail: settings.showEmail,
           showPhone: settings.showPhone,
@@ -85,7 +86,7 @@ export function DirectorySettingsTab() {
         },
         shareDirectoryWith: settings.shareDirectoryWith,
         shareResourcesWith: settings.shareResourcesWith
-      });
+      }, { merge: true });
       toast.success("Batch settings saved successfully");
     } catch (error) {
       console.error("Error saving batch settings:", error);

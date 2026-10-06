@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, getDocs, doc, addDoc, deleteDoc, query, orderBy } from "firebase/firestore";
+import { collection, getDocs, doc, addDoc, deleteDoc, updateDoc, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Edit, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 
 interface Combination {
@@ -21,6 +21,7 @@ export function CombinationsManagementTab() {
   const [isAdding, setIsAdding] = useState(false);
   const [newName, setNewName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
 
   const fetchCombinations = async () => {
     setLoading(true);
@@ -48,16 +49,36 @@ export function CombinationsManagementTab() {
     if (!newName.trim()) return;
     setIsAdding(true);
     try {
-      await addDoc(collection(db, "combinations"), { name: newName.trim() });
-      toast.success("Combination added successfully");
+      if (editId) {
+        await updateDoc(doc(db, "combinations", editId), { name: newName.trim() });
+        toast.success("Combination updated successfully");
+      } else {
+        await addDoc(collection(db, "combinations"), { name: newName.trim() });
+        toast.success("Combination added successfully");
+      }
       setNewName("");
       setIsDialogOpen(false);
+      setEditId(null);
       fetchCombinations();
     } catch (error) {
-      console.error("Error adding combination:", error);
-      toast.error("Failed to add combination");
+      console.error("Error saving combination:", error);
+      toast.error(editId ? "Failed to update combination" : "Failed to add combination");
     } finally {
       setIsAdding(false);
+    }
+  };
+  
+  const handleEdit = (combo: Combination) => {
+    setEditId(combo.id);
+    setNewName(combo.name);
+    setIsDialogOpen(true);
+  };
+  
+  const handleDialogClose = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setEditId(null);
+      setNewName("");
     }
   };
 
@@ -80,7 +101,7 @@ export function CombinationsManagementTab() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold tracking-tight">Manage Subject Combinations</h2>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger>
             <div className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90">
               <Plus className="mr-2 h-4 w-4" /> Add Combination
@@ -88,7 +109,7 @@ export function CombinationsManagementTab() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Subject Combination</DialogTitle>
+              <DialogTitle>{editId ? "Edit Subject Combination" : "Add Subject Combination"}</DialogTitle>
             </DialogHeader>
             <div className="py-4">
               <Input 
