@@ -67,9 +67,7 @@ function AdminPageContent() {
   const [resModule, setResModule] = useState("");
   const [resUrl, setResUrl] = useState("");
   const [resDesc, setResDesc] = useState("");
-  const [resChaptersList, setResChaptersList] = useState<{time: string, title: string}[]>([]);
-  const [newChapterTime, setNewChapterTime] = useState("");
-  const [newChapterTitle, setNewChapterTitle] = useState("");
+  const [resChaptersText, setResChaptersText] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
 
@@ -204,7 +202,7 @@ function AdminPageContent() {
               setResModule(data.moduleCode || data.module || "");
               setResUrl(data.url || "");
               setResDesc(data.description || "");
-              setResChaptersList(parseChaptersString(data.chapters || ""));
+              setResChaptersText(parseChaptersString(data.chapters || "").map(c => `${c.time} ${c.title}`).join("\n"));
             } else {
               const lecSnap = await getDoc(doc(db, "lectures", editId));
               if (lecSnap.exists()) {
@@ -215,7 +213,7 @@ function AdminPageContent() {
                 setResModule(data.moduleCode || data.module || "");
                 setResUrl(data.url || "");
                 setResDesc(data.description || "");
-                setResChaptersList(parseChaptersString(data.chapters || ""));
+                setResChaptersText(parseChaptersString(data.chapters || "").map(c => `${c.time} ${c.title}`).join("\n"));
                 setStartTime(data.startTime || "");
                 setEndTime(data.endTime || "");
               }
@@ -242,7 +240,7 @@ function AdminPageContent() {
     } else {
       setAnnTitle(""); setAnnCategory("General"); setAnnContent(""); setAnnBannerUrl(""); setAnnAttachedResources([]);
       setAnnHasPoll(false); setPollQuestion(""); setPollType("single"); setPollOptions(["", ""]);
-      setResType("pdf_document"); setResCategory("Lecture Notes"); setResTitle(""); setResModule(""); setResUrl(""); setResDesc(""); setResChaptersList([]); setNewChapterTime(""); setNewChapterTitle(""); setStartTime(""); setEndTime("");
+      setResType("pdf_document"); setResCategory("Lecture Notes"); setResTitle(""); setResModule(""); setResUrl(""); setResDesc(""); setResChaptersText(""); setStartTime(""); setEndTime("");
       setTxType("expense"); setTxAmount(""); setTxDesc("");
     }
   }, [editId, activeTab]);
@@ -355,6 +353,39 @@ function AdminPageContent() {
     }
   };
 
+
+  const parseChapters = (text: string) => {
+    const chapters: { time: string, title: string }[] = [];
+    let cleanText = text.replace(/\]\([^)]+\)/g, ']'); 
+    const timeRegex = /\[?((?:\d{1,2}:)?\d{1,2}:\d{2})\]?/g;
+    let match;
+    let lastIndex = 0;
+    const segments: { time: string, textBefore: string }[] = [];
+    
+    while ((match = timeRegex.exec(cleanText)) !== null) {
+        segments.push({
+            time: match[1],
+            textBefore: cleanText.substring(lastIndex, match.index).trim(),
+        });
+        lastIndex = match.index + match[0].length;
+    }
+    
+    const lastText = cleanText.substring(lastIndex).trim();
+    
+    for (let i = 0; i < segments.length; i++) {
+        let title = segments[i].textBefore;
+        if (title.replace(/[^a-zA-Z0-9\u0D80-\u0DFF]/g, '') === '') {
+            title = (i + 1 < segments.length) ? segments[i+1].textBefore : lastText;
+            if (i + 1 < segments.length) segments[i+1].textBefore = ''; 
+        }
+        title = title.replace(/^[\s|:\-]+|[\s|:\-]+$/g, '');
+        if (segments[i].time) {
+            chapters.push({ time: segments[i].time, title: title || "Chapter " + (i+1) });
+        }
+    }
+    return chapters;
+  };
+
   const handleCreateResource = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!cohortId) {
@@ -377,7 +408,7 @@ function AdminPageContent() {
           category: resCategory,
         };
         if (resType === "youtube_video") {
-          updateData.chapters = resChaptersList.map(c => `${c.time}~${c.title}`).join('|') || "";
+          updateData.chapters = parseChapters(resChaptersText).map(c => `${c.time}~${c.title}`).join('|') || "";
         }
         // For backwards compatibility
         if (resType === "pdf_document") updateData.driveViewUrl = resUrl || "";
@@ -403,7 +434,7 @@ function AdminPageContent() {
           createdAt: serverTimestamp(),
         };
         if (resType === "youtube_video") {
-          insertData.chapters = resChaptersList.map(c => `${c.time}~${c.title}`).join('|') || "";
+          insertData.chapters = parseChapters(resChaptersText).map(c => `${c.time}~${c.title}`).join('|') || "";
         }
         if (resType === "pdf_document") insertData.driveViewUrl = resUrl || "";
 
@@ -413,7 +444,7 @@ function AdminPageContent() {
         }
         await addDoc(collection(db, collectionName), insertData);
         toast.success(`${isLectureType ? "Session" : "Resource"} published successfully!`);
-        setResTitle(""); setResModule(""); setResUrl(""); setResDesc(""); setResChaptersList([]); setNewChapterTime(""); setNewChapterTitle(""); setStartTime(""); setEndTime("");
+        setResTitle(""); setResModule(""); setResUrl(""); setResDesc(""); setResChaptersText(""); setStartTime(""); setEndTime("");
       }
       setRefreshKeys(prev => ({ ...prev, resources: prev.resources + 1 }));
     } catch (error) {
@@ -483,52 +514,91 @@ function AdminPageContent() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <div className="overflow-x-auto pb-2">
-          <TabsList className="mb-2">
-            {(isSuperAdmin || user.role === 'rep') && (
-              <>
-                <TabsTrigger value="users" className="gap-2"><Users className="h-4 w-4" /> Users</TabsTrigger>
-                <TabsTrigger value="profile_updates" className="gap-2"><UserCog className="h-4 w-4" /> Profile Updates</TabsTrigger>
-              </>
-            )}
+      <Tabs value={activeTab} onValueChange={handleTabChange} orientation="vertical" className="flex flex-col lg:flex-row gap-8 w-full items-start">
+        {/* Sidebar Navigation for Admin Panel */}
+        <div className="w-full lg:w-64 shrink-0 lg:sticky lg:top-24">
+          <TabsList className="flex flex-row lg:flex-col h-auto w-full bg-transparent p-0 gap-2 overflow-x-auto lg:overflow-visible justify-start items-start no-scrollbar">
+            
+            <div className="hidden lg:block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 px-4 mt-2">
+              Communication
+            </div>
             
             {(isSuperAdmin || user.role === 'rep' || user.role === 'media_rep') && (
-              <TabsTrigger value="announcements" className="gap-2"><Megaphone className="h-4 w-4" /> Announcements</TabsTrigger>
+              <TabsTrigger value="announcements" className="w-full justify-start text-left px-4 py-2.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none rounded-lg whitespace-nowrap">
+                <Megaphone className="h-4 w-4 mr-3" /> Announcements
+              </TabsTrigger>
             )}
             
             {(isSuperAdmin || user.role === 'rep' || user.role === 'academic_rep') && (
-              <TabsTrigger value="resources">Resources & Kuppi Sessions</TabsTrigger>
+              <TabsTrigger value="resources" className="w-full justify-start text-left px-4 py-2.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none rounded-lg whitespace-nowrap">
+                <LibraryBig className="h-4 w-4 mr-3" /> Resources & Kuppi
+              </TabsTrigger>
             )}
-            
-            {(isSuperAdmin || user.role === 'rep' || user.role === 'treasurer') && (
-              <TabsTrigger value="finances">Finances</TabsTrigger>
-            )}
-            
-            {(isSuperAdmin || user.role === 'rep') && (
-              <TabsTrigger value="feedback" className="gap-2"><MessageSquare className="h-4 w-4" /> Feedback</TabsTrigger>
-            )}
-            
-            {(isSuperAdmin || user.role === 'rep' || user.role === 'media_rep') && (
-              <TabsTrigger value="public" className="gap-2"><Sparkles className="h-4 w-4" /> Public Web</TabsTrigger>
-            )}
+
+            <div className="hidden lg:block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 px-4 mt-6">
+              Administration
+            </div>
 
             {(isSuperAdmin || user.role === 'rep') && (
               <>
-                <TabsTrigger value="combinations" className="gap-2"><LibraryBig className="h-4 w-4" /> Combinations</TabsTrigger>
-                <TabsTrigger value="settings" className="gap-2"><Settings className="h-4 w-4" /> Directory Settings</TabsTrigger>
+                <TabsTrigger value="users" className="w-full justify-start text-left px-4 py-2.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none rounded-lg whitespace-nowrap">
+                  <Users className="h-4 w-4 mr-3" /> User Management
+                </TabsTrigger>
+                <TabsTrigger value="profile_updates" className="w-full justify-start text-left px-4 py-2.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none rounded-lg whitespace-nowrap">
+                  <UserCog className="h-4 w-4 mr-3" /> Profile Updates
+                </TabsTrigger>
+                <TabsTrigger value="feedback" className="w-full justify-start text-left px-4 py-2.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none rounded-lg whitespace-nowrap">
+                  <MessageSquare className="h-4 w-4 mr-3" /> Feedback & Complaints
+                </TabsTrigger>
+                <TabsTrigger value="settings" className="w-full justify-start text-left px-4 py-2.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none rounded-lg whitespace-nowrap">
+                  <Settings className="h-4 w-4 mr-3" /> Directory Settings
+                </TabsTrigger>
               </>
             )}
-            
+
+            <div className="hidden lg:block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 px-4 mt-6">
+              Academics
+            </div>
+
             {(isSuperAdmin || user.role === 'rep' || user.role === 'academic_rep') && (
-              <TabsTrigger value="subjects" className="gap-2"><Plus className="h-4 w-4" /> Subjects (Modules)</TabsTrigger>
+              <TabsTrigger value="subjects" className="w-full justify-start text-left px-4 py-2.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none rounded-lg whitespace-nowrap">
+                <Plus className="h-4 w-4 mr-3" /> Modules / Subjects
+              </TabsTrigger>
+            )}
+            
+            {(isSuperAdmin || user.role === 'rep') && (
+              <TabsTrigger value="combinations" className="w-full justify-start text-left px-4 py-2.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none rounded-lg whitespace-nowrap">
+                <LibraryBig className="h-4 w-4 mr-3" /> Subject Combinations
+              </TabsTrigger>
             )}
 
             {isSuperAdmin && (
-              <TabsTrigger value="cohorts" className="gap-2"><FolderGit2 className="h-4 w-4" /> Cohorts</TabsTrigger>
+              <TabsTrigger value="cohorts" className="w-full justify-start text-left px-4 py-2.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none rounded-lg whitespace-nowrap">
+                <FolderGit2 className="h-4 w-4 mr-3" /> Cohorts Management
+              </TabsTrigger>
             )}
+
+            <div className="hidden lg:block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 px-4 mt-6">
+              Operations
+            </div>
+
+            {(isSuperAdmin || user.role === 'rep' || user.role === 'treasurer') && (
+              <TabsTrigger value="finances" className="w-full justify-start text-left px-4 py-2.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none rounded-lg whitespace-nowrap">
+                <ShieldAlert className="h-4 w-4 mr-3" /> Financial Records
+              </TabsTrigger>
+            )}
+
+            {(isSuperAdmin || user.role === 'rep' || user.role === 'media_rep') && (
+              <TabsTrigger value="public" className="w-full justify-start text-left px-4 py-2.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none rounded-lg whitespace-nowrap">
+                <Sparkles className="h-4 w-4 mr-3" /> Public Website
+              </TabsTrigger>
+            )}
+            
           </TabsList>
         </div>
+
+        {/* Tab Content Area */}
+        <div className="flex-1 min-w-0 w-full">
 
         {(isSuperAdmin || user.role === 'rep') && (
           <>
@@ -854,74 +924,20 @@ function AdminPageContent() {
                     <div>
                       <label className="text-sm font-medium">Video Chapters / Timestamps (Optional)</label>
                       <p className="text-[11px] text-muted-foreground mt-0 pt-0 mb-3">
-                        Add specific timestamps (e.g., 00:00) and titles for each chapter to allow easy navigation.
+                        Paste YouTube description timestamps here. E.g:<br/>
+                        00:00 Intro<br/>
+                        03:50 Chapter 1
                       </p>
                     </div>
                     
                     <div className="flex items-start gap-2">
-                      <div className="w-1/3">
-                        <Input 
-                          placeholder="e.g. 05:30" 
-                          value={newChapterTime} 
-                          onChange={e => setNewChapterTime(e.target.value)} 
+                        <textarea 
+                          className="flex min-h-[150px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring font-mono" 
+                          placeholder="00:00 Intro\n03:50 Chapter 1" 
+                          value={resChaptersText} 
+                          onChange={e => setResChaptersText(e.target.value)} 
                         />
-                      </div>
-                      <div className="flex-1">
-                        <Input 
-                          placeholder="Chapter title" 
-                          value={newChapterTitle} 
-                          onChange={e => setNewChapterTitle(e.target.value)} 
-                        />
-                      </div>
-                      <Button 
-                        type="button" 
-                        variant="secondary"
-                        onClick={() => {
-                          if (newChapterTime && newChapterTitle) {
-                            setResChaptersList([...resChaptersList, { time: newChapterTime, title: newChapterTitle }]);
-                            setNewChapterTime("");
-                            setNewChapterTitle("");
-                          }
-                        }}
-                      >
-                        Add
-                      </Button>
                     </div>
-
-                    {resChaptersList.length > 0 && (
-                      <div className="mt-4 border rounded-md overflow-hidden">
-                        <table className="w-full text-sm">
-                          <thead className="bg-muted">
-                            <tr>
-                              <th className="text-left py-2 px-3 font-medium w-24">Time</th>
-                              <th className="text-left py-2 px-3 font-medium">Title</th>
-                              <th className="w-[50px]"></th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {resChaptersList.map((chapter, idx) => (
-                              <tr key={idx} className="border-t border-border/50 bg-background">
-                                <td className="py-2 px-3 text-primary font-mono">{chapter.time}</td>
-                                <td className="py-2 px-3">{chapter.title}</td>
-                                <td className="py-2 px-2 text-center">
-                                  <Button 
-                                    type="button" 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-6 w-6 text-destructive shrink-0"
-                                    onClick={() => {
-                                      setResChaptersList(resChaptersList.filter((_, i) => i !== idx));
-                                    }}
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
                   </div>
                 )}
                 {resType === "zoom_meeting" && (
@@ -1007,6 +1023,7 @@ function AdminPageContent() {
           <FinancesTable cohortId={cohortId} key={`fin-${refreshKeys.finances}`} />
           </TabsContent>
         )}
+      </div>
       </Tabs>
     </div>
   );

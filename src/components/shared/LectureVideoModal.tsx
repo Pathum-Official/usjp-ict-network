@@ -105,6 +105,30 @@ export function LectureVideoModal({ isOpen, onClose, url, title, moduleCode, cha
     }).filter(Boolean) as { time: string, title: string, seconds: number }[];
   }, [chapters]);
 
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const player = playerRef.current?.plyr;
+      if (!player) return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        player.togglePlay();
+      } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        player.forward(10);
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        player.rewind(10);
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
   const handleShieldClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const player = playerRef.current?.plyr;
     if (!player) return;

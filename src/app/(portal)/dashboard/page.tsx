@@ -38,13 +38,36 @@ export default function DashboardPage() {
         setLoading(true);
         const { doc, getDoc } = await import("firebase/firestore");
 
-        const [annRes, resRes, lecRes, txRes, usersRes, cohortDoc] = await Promise.all([
+        // Fetch cohorts to determine allowed resources
+        const cohortsSnap = await getDocs(collection(db, "cohorts"));
+        const allowedCohorts: string[] = [];
+        cohortsSnap.forEach(d => {
+          const data = d.data();
+          if (user?.role === 'super_admin') {
+             allowedCohorts.push(data.id);
+          } else {
+             if (data.id === user.cohortId) {
+               allowedCohorts.push(data.id);
+             } else if (data.shareResourcesWith?.includes('all') || data.shareResourcesWith?.includes(user.cohortId)) {
+               allowedCohorts.push(data.id);
+             }
+          }
+        });
+
+        // Split allowedCohorts into chunks of 10
+        const resourceQueries = [];
+        for (let i = 0; i < allowedCohorts.length; i += 10) {
+          const chunk = allowedCohorts.slice(i, i + 10);
+          resourceQueries.push(getDocs(query(collection(db, "resources"), where("cohortId", "in", chunk))));
+        }
+
+        const [annRes, lecRes, txRes, usersRes, cohortDoc, ...resResChunks] = await Promise.all([
           getDocs(query(collection(db, "announcements"), where("cohortId", "==", user.cohortId))),
-          getDocs(query(collection(db, "resources"), where("cohortId", "==", user.cohortId))),
           getDocs(query(collection(db, "lectures"), where("cohortId", "==", user.cohortId))),
           getDocs(query(collection(db, "transactions"), where("cohortId", "==", user.cohortId))),
           getDocs(query(collection(db, "users"), where("cohortId", "==", user.cohortId), where("status", "==", "approved"))),
-          getDoc(doc(db, "cohorts", user.cohortId))
+          getDoc(doc(db, "cohorts", user.cohortId)),
+          ...resourceQueries
         ]);
 
         const cohortData = cohortDoc.exists() ? cohortDoc.data() : { name: user.cohortId.toUpperCase() };
@@ -61,7 +84,9 @@ export default function DashboardPage() {
 
         // Fetch resources
         const resList: any[] = [];
-        resRes.forEach(d => resList.push({ id: d.id, ...d.data() }));
+        resResChunks.forEach(resRes => {
+          resRes.forEach((d: any) => resList.push({ id: d.id, ...d.data() }));
+        });
         resList.sort((a, b) => {
           const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : (a.createdAt || 0);
           const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : (b.createdAt || 0);

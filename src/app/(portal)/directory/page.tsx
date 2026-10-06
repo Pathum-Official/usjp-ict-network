@@ -17,27 +17,37 @@ import { useAuth } from "@/context/AuthContext";
 export default function DirectoryPage() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
+  const [cohortsData, setCohortsData] = useState<Record<string, any>>({});
+  const [visibleCohorts, setVisibleCohorts] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [batchFilter, setBatchFilter] = useState("all");
-  const [settings, setSettings] = useState({
-    showEmail: true,
-    showPhone: true,
-    showWhatsapp: true,
-    showAddress: true,
-    showDob: false,
-    showRegNo: true,
-  });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch Settings
-        const docRef = doc(db, "settings", "directory");
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setSettings(docSnap.data() as any);
-        }
+        // Fetch Cohorts to get directorySettings and share options
+        const cohortsSnap = await getDocs(collection(db, "cohorts"));
+        const cohortsDict: Record<string, any> = {};
+        const allowedCohorts: string[] = [];
+        
+        cohortsSnap.forEach(d => {
+          const data = d.data();
+          cohortsDict[data.id] = data;
+          
+          if (currentUser?.role === 'super_admin') {
+             allowedCohorts.push(data.id);
+          } else {
+             if (data.id === currentUser?.cohortId) {
+               allowedCohorts.push(data.id);
+             } else if (data.shareDirectoryWith?.includes('all') || data.shareDirectoryWith?.includes(currentUser?.cohortId)) {
+               allowedCohorts.push(data.id);
+             }
+          }
+        });
+        
+        setCohortsData(cohortsDict);
+        setVisibleCohorts(allowedCohorts);
 
         // Fetch Users
         const q = query(collection(db, "users"), where("status", "==", "approved"));
@@ -54,13 +64,13 @@ export default function DirectoryPage() {
       }
     };
     fetchData();
-  }, []);
+  }, [currentUser]);
 
-  const isRestrictedAccess = batchFilter !== "all" && batchFilter !== currentUser?.cohortId && currentUser?.role !== 'super_admin';
+  const isRestrictedAccess = batchFilter !== "all" && !visibleCohorts.includes(batchFilter) && currentUser?.role !== 'super_admin';
 
   const filteredUsers = isRestrictedAccess ? [] : users.filter(u => {
-    // Normal users and reps can only see their own cohort. Only super_admin sees all.
-    if (currentUser?.role !== 'super_admin' && u.cohortId !== currentUser?.cohortId) {
+    // Check if the cohort is in allowed visible cohorts
+    if (!visibleCohorts.includes(u.cohortId)) {
       return false;
     }
 
@@ -78,6 +88,14 @@ export default function DirectoryPage() {
     if (b.uid === currentUser?.uid) return 1;
     return (a.name || "").localeCompare(b.name || "");
   });
+
+  const getCohortSettings = (cohortId: string) => {
+    const defaultSettings = {
+      showEmail: true, showPhone: true, showWhatsapp: true, 
+      showAddress: true, showDob: false, showRegNo: true
+    };
+    return cohortsData[cohortId]?.directorySettings || defaultSettings;
+  };
 
   return (
     <div className="space-y-6">
@@ -102,11 +120,9 @@ export default function DirectoryPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Batches</SelectItem>
-            <SelectItem value="ict-2022">ICT 2022</SelectItem>
-            <SelectItem value="ict-2023">ICT 2023</SelectItem>
-            <SelectItem value="ict-2024">ICT 2024</SelectItem>
-            <SelectItem value="ict-2025">ICT 2025</SelectItem>
-            <SelectItem value="ict-2026">ICT 2026</SelectItem>
+            {Object.values(cohortsData).map(c => (
+              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -144,6 +160,7 @@ export default function DirectoryPage() {
             const today = new Date();
             const todayMonthDay = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
             const isBirthday = u.dob && u.dob.endsWith(todayMonthDay);
+            const settings = getCohortSettings(u.cohortId);
             
             return (
             <Card key={u.uid} className={`overflow-hidden group hover:shadow-md transition-all ${isBirthday ? 'border-pink-500/50 shadow-[0_0_15px_rgba(236,72,153,0.15)] relative' : ''}`}>
